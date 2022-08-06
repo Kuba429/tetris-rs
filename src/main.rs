@@ -1,5 +1,14 @@
+mod grid;
+mod piece;
+mod tile;
+
+use grid::*;
 use macroquad::prelude::*;
-const BASE: u16 = 250;
+use piece::get_shape;
+use tile::Tile;
+
+pub const BASE: u16 = 250;
+
 fn conf() -> Conf {
     Conf {
         fullscreen: false,
@@ -14,39 +23,21 @@ fn conf() -> Conf {
 #[macroquad::main(conf)]
 async fn main() {
     let mut grid: [[u8; 20]; 10] = [[0; 20]; 10];
-    let draw_grid = draw_grid_setup(&mut grid); // returns a closure to get some grid dependant values that i don't want to calculate on every frame
+    let draw_grid = draw_grid_setup(&grid); // returns a closure to get some grid dependant values that i don't want to calculate on every frame
+    let (x, y): (u8, u8) = (4, 5);
+    let mut shape_template: Vec<u8> = vec![0, 0, 0, 0, 1, 0, 1, 1, 1];
+    let mut shape: Vec<Option<Tile>> = get_shape(x, y, shape_template);
+
+    shape.iter().for_each(|tile| {
+        if let Some(t) = tile {
+            grid[t.x as usize][t.y as usize] = t.val;
+        }
+    });
+
     loop {
         clear_background(WHITE);
-        draw_grid(&mut grid);
+        draw_grid(&grid);
+        // current_piece.move_to(BOTTOM);
         next_frame().await;
     }
-}
-
-fn draw_grid_setup(grid: &mut [[u8; 20]; 10]) -> impl Fn(&mut [[u8; 20]; 10]) {
-    let tile_width: f32 = BASE as f32 / grid.len() as f32;
-    let offset: f32 = BASE as f32 / 3.0;
-    return move |grid: &mut [[u8; 20]; 10]| {
-        draw_rectangle(
-            offset,
-            0.0,
-            BASE.into(),
-            screen_height(),
-            Color::new(0.0, 0.0, 0.0, 0.1),
-        ); // mesh
-        for x in 0..grid.len() {
-            for y in 0..grid[0].len() {
-                let mut color = WHITE;
-                if grid[x][y] != 0 {
-                    color = BLUE;
-                };
-                draw_rectangle(
-                    x as f32 * tile_width + offset + 0.5,
-                    y as f32 * tile_width + 0.5,
-                    tile_width - 1.0,
-                    tile_width - 1.0,
-                    color,
-                )
-            }
-        }
-    };
 }
