@@ -2,16 +2,39 @@ use std::sync::{Arc, Mutex};
 
 use crate::tile::Tile;
 use rand::prelude::*;
-// #[rustfmt::skip] // easier to see the shapes
+#[rustfmt::skip] // easier to see the shapes
 pub fn get_random_shape_template_getter() -> impl Fn() -> Vec<u8> {
     let shape_templates: Arc<Mutex<[Vec<u8>]>> = Arc::new(Mutex::new([
-        vec![0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0],
-        vec![0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0],
-        vec![0, 3, 3, 3, 3, 0, 0, 0, 0],
-        vec![4, 4, 0, 0, 4, 4, 0, 0, 0],
-        vec![5, 0, 0, 5, 5, 5, 0, 0, 0],
-        vec![0, 0, 6, 6, 6, 6, 0, 0, 0],
-        vec![0, 7, 0, 7, 7, 7, 0, 0, 0],
+        vec![
+            0, 0, 0, 0, 
+            0, 1, 1, 0, 
+            0, 1, 1, 0, 
+            0, 0, 0, 0],
+        vec![
+            0, 2, 0, 0, 
+            0, 2, 0, 0, 
+            0, 2, 0, 0, 
+            0, 2, 0, 0],
+        vec![
+            0, 3, 3, 
+            3, 3, 0, 
+            0, 0, 0],
+        vec![
+            4, 4, 0, 
+            0, 4, 4, 
+            0, 0, 0],
+        vec![
+            5, 0, 0, 
+            5, 5, 5, 
+            0, 0, 0],
+        vec![
+            0, 0, 6, 
+            6, 6, 6, 
+            0, 0, 0],
+        vec![
+            0, 7, 0, 
+            7, 7, 7, 
+            0, 0, 0],
     ]));
     let rng = Arc::new(Mutex::new(rand::thread_rng()));
     return move || -> Vec<u8> {
@@ -20,7 +43,7 @@ pub fn get_random_shape_template_getter() -> impl Fn() -> Vec<u8> {
         return (*shapes[random_idx]).try_into().unwrap();
     };
 }
-pub fn get_shape(x: u8, y: u8, template: Vec<u8>) -> Vec<Option<Tile>> {
+pub fn get_shape(x: i8, y: i8, template: &Vec<u8>) -> Vec<Option<Tile>> {
     return match template.len() {
         9 => template
             .iter()
@@ -74,7 +97,82 @@ pub fn get_shape(x: u8, y: u8, template: Vec<u8>) -> Vec<Option<Tile>> {
         _ => panic!("Unhandled shape template"),
     };
 }
+pub fn spawn(grid: &mut [[u8; 20]; 10], shape: &Vec<Option<Tile>>) {
+    shape.iter().for_each(|tile| {
+        if let Some(t) = tile {
+            grid[t.x as usize][t.y as usize] = t.val;
+        };
+    });
+}
+pub fn move_piece(grid: &mut [[u8; 20]; 10], shape: &mut Vec<Option<Tile>>, direction: Direction) {
+    let (diff_x, diff_y) = match direction {
+        Direction::LEFT => (-1, 0),
+        Direction::RIGHT => (1, 0),
+        Direction::BOTTOM => (0, 1),
+    };
+    let collision = check_collision(grid, shape, (diff_x, diff_y));
+    if collision {
+        return;
+    }
+    // good to go
+    shape.iter_mut().for_each(|tile| {
+        if let Some(t) = tile {
+            grid[t.x as usize][t.y as usize] = 0;
+            t.x += diff_x;
+            t.y += diff_y
+        }
+    });
+    shape.iter_mut().for_each(|tile| {
+        if let Some(t) = tile {
+            grid[t.x as usize][t.y as usize] = t.val;
+        }
+    })
+}
+pub fn check_collision(
+    grid: &mut [[u8; 20]; 10],
+    shape: &mut Vec<Option<Tile>>,
+    (diff_x, diff_y): (i8, i8),
+) -> bool {
+    let mut res = false;
+    shape.iter().for_each(|tile| {
+        if let Some(t) = tile {
+            // first check if index is out of bounds
+            if t.y + diff_y >= grid[0].len() as i8
+                || t.y + diff_y < 0
+                || t.x + diff_x >= grid.len() as i8
+                || t.x + diff_x < 0
+            {
+                res = true
+            }
+            if res {
+                // return early if there is collision at this point
+                return;
+            }
+            let val = grid[(t.x + diff_x) as usize][(t.y + diff_y) as usize];
+            // if there is a tile on the grid at this position, check if it's a part of this piece
+            if val > 0 && val < 100 {
+                let mut found = false;
+                let mut i = 0;
+                while !found && i < shape.len() {
+                    if let Some(maybe_own) = &shape[i] {
+                        if maybe_own.x == t.x + diff_x
+                            && maybe_own.y == t.y + diff_y
+                            && maybe_own.val == val
+                        {
+                            found = true
+                        }
+                    }
+                    i += 1;
+                }
 
+                if !found {
+                    res = true
+                }
+            }
+        }
+    });
+    return res;
+}
 pub enum Direction {
     RIGHT,
     LEFT,
