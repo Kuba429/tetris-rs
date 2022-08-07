@@ -104,7 +104,12 @@ pub fn spawn(grid: &mut [[u8; 20]; 10], shape: &Vec<Option<Tile>>) {
         };
     });
 }
-pub fn move_piece(grid: &mut [[u8; 20]; 10], shape: &mut Vec<Option<Tile>>, direction: Direction) {
+pub fn move_piece(
+    (x, y): (&mut i8, &mut i8),
+    grid: &mut [[u8; 20]; 10],
+    shape: &mut Vec<Option<Tile>>,
+    direction: Direction,
+) -> bool {
     let (diff_x, diff_y) = match direction {
         Direction::LEFT => (-1, 0),
         Direction::RIGHT => (1, 0),
@@ -112,9 +117,11 @@ pub fn move_piece(grid: &mut [[u8; 20]; 10], shape: &mut Vec<Option<Tile>>, dire
     };
     let collision = check_collision(grid, shape, (diff_x, diff_y));
     if collision {
-        return;
+        return false;
     }
     // good to go
+    *x += diff_x;
+    *y += diff_y;
     shape.iter_mut().for_each(|tile| {
         if let Some(t) = tile {
             grid[t.x as usize][t.y as usize] = 0;
@@ -126,7 +133,8 @@ pub fn move_piece(grid: &mut [[u8; 20]; 10], shape: &mut Vec<Option<Tile>>, dire
         if let Some(t) = tile {
             grid[t.x as usize][t.y as usize] = t.val;
         }
-    })
+    });
+    return true;
 }
 pub fn check_collision(
     grid: &mut [[u8; 20]; 10],

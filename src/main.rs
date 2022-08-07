@@ -25,14 +25,24 @@ async fn main() {
     let mut grid: [[u8; 20]; 10] = [[0; 20]; 10];
     let draw_grid = draw_grid_setup(&grid); // returns a closure to get some grid dependant values that i don't want to calculate on every frame
     let get_random_shape = get_random_shape_template_getter(); // also closure, same reason
-    let (x, y): (i8, i8) = (4, 5);
+    let (mut x, mut y): (i8, i8) = (4, 1);
     let mut shape_template: Vec<u8> = get_random_shape();
     let mut shape: Vec<Option<Tile>> = get_shape(x, y, &shape_template);
     spawn(&mut grid, &shape);
     loop {
         clear_background(WHITE);
         draw_grid(&grid);
-        move_piece(&mut grid, &mut shape, piece::Direction::BOTTOM);
+        let get_new_piece = move_piece(
+            (&mut x, &mut y),
+            &mut grid,
+            &mut shape,
+            piece::Direction::BOTTOM,
+        );
+        if !get_new_piece {
+            shape_template = get_random_shape();
+            shape = get_shape(x, y, &shape_template);
+            (x, y) = (4, 1);
+        }
         next_frame().await;
     }
 }
