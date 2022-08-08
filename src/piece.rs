@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use crate::tile::Tile;
+use crate::{input::Direction, tile::Tile};
 use rand::prelude::*;
 #[rustfmt::skip] // easier to see the shapes
 pub fn get_random_shape_template_getter() -> impl Fn() -> Vec<u8> {
@@ -195,9 +195,4 @@ pub fn check_collision(
         }
     });
     return res;
-}
-pub enum Direction {
-    RIGHT,
-    LEFT,
-    BOTTOM,
 }
