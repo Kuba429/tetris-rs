@@ -136,6 +136,21 @@ pub fn move_piece(
     });
     return true;
 }
+pub fn move_piece_down(
+    // this is just a proxy function, might delete it later idk
+    (x, y): (&mut i8, &mut i8),
+    grid: &mut [[u8; 20]; 10],
+    shape_template: &mut Vec<u8>,
+    shape: &mut Vec<Option<Tile>>,
+    get_random_shape_template: &dyn Fn() -> Vec<u8>,
+) {
+    let get_new_piece = move_piece((x, y), grid, shape, Direction::BOTTOM);
+    if !get_new_piece {
+        *shape_template = get_random_shape_template();
+        *shape = get_shape(*x, *y, shape_template);
+        (*x, *y) = (4, 1);
+    }
+}
 pub fn check_collision(
     grid: &mut [[u8; 20]; 10],
     shape: &mut Vec<Option<Tile>>,

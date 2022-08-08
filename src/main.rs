@@ -4,11 +4,13 @@ mod tile;
 
 use grid::*;
 use macroquad::prelude::*;
-use piece::{get_random_shape_template_getter, get_shape, move_piece, spawn};
+use piece::{
+    get_random_shape_template_getter, get_shape, move_piece, move_piece_down, spawn, Direction,
+};
 use tile::Tile;
 
 pub const BASE: u16 = 250;
-
+const MOVE_DOWN_DELAY: f64 = 1.0;
 fn conf() -> Conf {
     Conf {
         fullscreen: false,
@@ -29,20 +31,36 @@ async fn main() {
     let mut shape_template: Vec<u8> = get_random_shape();
     let mut shape: Vec<Option<Tile>> = get_shape(x, y, &shape_template);
     spawn(&mut grid, &shape);
+    let mut last_update = get_time();
     loop {
         clear_background(WHITE);
         draw_grid(&grid);
-        let get_new_piece = move_piece(
-            (&mut x, &mut y),
-            &mut grid,
-            &mut shape,
-            piece::Direction::BOTTOM,
-        );
-        if !get_new_piece {
-            shape_template = get_random_shape();
-            shape = get_shape(x, y, &shape_template);
-            (x, y) = (4, 1);
+        // move piece down
+        if get_time() - last_update > MOVE_DOWN_DELAY {
+            move_piece_down(
+                (&mut x, &mut y),
+                &mut grid,
+                &mut shape_template,
+                &mut shape,
+                &get_random_shape,
+            );
+            last_update = get_time();
         }
+        if is_key_down(KeyCode::Left) {
+            move_piece((&mut x, &mut y), &mut grid, &mut shape, Direction::LEFT);
+        };
+        if is_key_down(KeyCode::Right) {
+            move_piece((&mut x, &mut y), &mut grid, &mut shape, Direction::RIGHT);
+        };
+        if is_key_down(KeyCode::Down) {
+            move_piece_down(
+                (&mut x, &mut y),
+                &mut grid,
+                &mut shape_template,
+                &mut shape,
+                &get_random_shape,
+            );
+        };
         next_frame().await;
     }
 }
