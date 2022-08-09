@@ -5,7 +5,11 @@ use std::{
 
 use macroquad::prelude::{is_key_down, is_key_released, KeyCode};
 
-use crate::{piece::move_piece, piece::move_piece_down, tile::Tile};
+use crate::{
+    piece::move_piece,
+    piece::{move_piece_down, rotate},
+    tile::Tile,
+};
 
 pub fn handle_input_setup() -> impl Fn(
     (&mut i8, &mut i8),
@@ -55,7 +59,9 @@ pub fn handle_input_setup() -> impl Fn(
                     }
 
                     KeyCode::Up => {
-                        todo!("rotate");
+                        if *count == 0 {
+                            rotate((x, y), grid, shape, shape_template)
+                        }
                     }
                     KeyCode::Space => {
                         todo!("drop");

@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    fmt::Display,
+    sync::{Arc, Mutex},
+};
 
 use crate::{input::Direction, tile::Tile};
 use rand::prelude::*;
@@ -151,6 +154,8 @@ pub fn move_piece_down(
         (*x, *y) = (4, 1);
     }
 }
+// TODO; rotation collision check not working how it's supposed to; pieces can go into other tiles
+// and delete them from the grid
 pub fn check_collision(
     grid: &mut [[u8; 20]; 10],
     shape: &mut Vec<Option<Tile>>,
@@ -173,26 +178,99 @@ pub fn check_collision(
             }
             let val = grid[(t.x + diff_x) as usize][(t.y + diff_y) as usize];
             // if there is a tile on the grid at this position, check if it's a part of this piece
-            if val > 0 && val < 100 {
-                let mut found = false;
-                let mut i = 0;
-                while !found && i < shape.len() {
-                    if let Some(maybe_own) = &shape[i] {
-                        if maybe_own.x == t.x + diff_x
-                            && maybe_own.y == t.y + diff_y
-                            && maybe_own.val == val
-                        {
-                            found = true
+            if val > 0
+                && val < 100
+                && !shape.iter().any(|to_check| {
+                    let mut is_own = false;
+                    if let Some(t2) = to_check {
+                        if t2.x == t.x + diff_x && t.y + diff_y == t2.y {
+                            is_own = true;
                         }
                     }
-                    i += 1;
-                }
-
-                if !found {
-                    res = true
-                }
+                    is_own
+                })
+            {
+                res = true
             }
         }
     });
     return res;
+}
+pub fn rotate(
+    (x, y): (&mut i8, &mut i8),
+    grid: &mut [[u8; 20]; 10],
+    shape: &mut Vec<Option<Tile>>,
+    shape_template: &mut Vec<u8>,
+) {
+    let offsets = [
+        // try to move rotated piece in these directions. If any of them passes, use that one
+        (0, 0), // x, y
+        (-1, 0),
+        (1, 0),
+        (0, 1),
+        (-1, 1),
+        (1, 1),
+        (0, -1),
+        (1, -1),
+        (-1, -1),
+    ];
+    let mut image = vec_to_image(shape_template);
+    rotate_image(&mut image);
+    let shape_template_temp: Vec<u8> = image.into_iter().flatten().collect();
+    let mut shape_temp: Vec<Option<Tile>>;
+    for offset in offsets {
+        shape_temp = get_shape(*x + offset.0, *y + offset.1, &shape_template_temp);
+        // if there is no collision
+        if !check_collision(grid, &mut shape_temp, (0, 0)) {
+            // remove this piece from the grid
+            for t in &mut *shape {
+                if let Some(tile) = t {
+                    grid[tile.x as usize][tile.y as usize] = 0;
+                }
+            }
+            // alter original shapes
+            *shape = shape_temp;
+            *shape_template = shape_template_temp;
+            *x += offset.0;
+            *y += offset.1;
+            // place piece on the grid
+            spawn(grid, shape);
+            break;
+        };
+    }
+}
+pub fn vec_to_image<T>(vector: &mut Vec<T>) -> Vec<Vec<T>>
+where
+    T: Copy,
+{
+    let mut image: Vec<Vec<T>> = Vec::new();
+    let dimension = (vector.len() as f32).sqrt().abs();
+    assert_eq!(dimension, dimension.abs());
+    for i in 0..dimension as usize {
+        image.push(Vec::new());
+        for j in 0..dimension as usize {
+            image[i].push(vector[i * dimension as usize + j]);
+        }
+    }
+    return image;
+}
+pub fn rotate_image<T>(image: &mut Vec<Vec<T>>)
+where
+    T: Copy,
+    T: Display,
+{
+    assert_eq!(image.len(), image[0].len());
+
+    let image_len = image.len();
+    for i in 0..image_len {
+        for j in i..image_len {
+            (image[i][j], image[j][i]) = (image[j][i], image[i][j]);
+        }
+    }
+
+    for i in 0..image_len {
+        for j in 0..image_len / 2 {
+            (image[i][j], image[i][image_len - 1 - j]) = (image[i][image_len - 1 - j], image[i][j])
+        }
+    }
 }
