@@ -150,15 +150,15 @@ pub fn move_piece_down(
     let get_new_piece = move_piece((x, y), grid, shape, Direction::BOTTOM);
     if !get_new_piece {
         *shape_template = get_random_shape_template();
-        *shape = get_shape(*x, *y, shape_template);
         (*x, *y) = (4, 1);
+        *shape = get_shape(*x, *y, shape_template);
     }
 }
 // TODO; rotation collision check not working how it's supposed to; pieces can go into other tiles
 // and delete them from the grid
 pub fn check_collision(
     grid: &mut [[u8; 20]; 10],
-    shape: &mut Vec<Option<Tile>>,
+    shape: &Vec<Option<Tile>>,
     (diff_x, diff_y): (i8, i8),
 ) -> bool {
     let mut res = false;
@@ -196,8 +196,10 @@ pub fn check_collision(
     });
     return res;
 }
+// TODO check_collision function doesn't work with this function for some reason; fix it and
+// refactor it to use check_collision and make it less messy
 pub fn rotate(
-    (x, y): (&mut i8, &mut i8),
+    (x_main, y_main): (&mut i8, &mut i8),
     grid: &mut [[u8; 20]; 10],
     shape: &mut Vec<Option<Tile>>,
     shape_template: &mut Vec<u8>,
@@ -217,27 +219,54 @@ pub fn rotate(
     let mut image = vec_to_image(shape_template);
     rotate_image(&mut image);
     let shape_template_temp: Vec<u8> = image.into_iter().flatten().collect();
-    let mut shape_temp: Vec<Option<Tile>>;
-    for offset in offsets {
-        shape_temp = get_shape(*x + offset.0, *y + offset.1, &shape_template_temp);
-        // if there is no collision
-        if !check_collision(grid, &mut shape_temp, (0, 0)) {
-            // remove this piece from the grid
-            for t in &mut *shape {
-                if let Some(tile) = t {
-                    grid[tile.x as usize][tile.y as usize] = 0;
+    let mut shape_temp: Option<Vec<Option<Tile>>> = None;
+    let mut is_found = false;
+    for m in offsets {
+        if is_found {
+            return;
+        }
+        is_found = true;
+        let x = *x_main + m.0;
+        let y = *y_main + m.1;
+        shape_temp = Some(get_shape(x, y, &shape_template_temp));
+        for t in shape_temp.as_ref().unwrap() {
+            if let Some(tile) = t {
+                if tile.x < 0
+                    || tile.y < 0
+                    || tile.x >= grid.len() as i8
+                    || tile.y >= grid[0].len() as i8
+                    || (grid[tile.x as usize][tile.y as usize] != 0
+                        && !shape.iter().any(|own| {
+                            let mut is_own = false;
+                            if let Some(xx) = own {
+                                if xx.x == tile.x && xx.y == tile.y {
+                                    is_own = true;
+                                }
+                            }
+                            return is_own;
+                        }))
+                {
+                    is_found = false
                 }
             }
-            // alter original shapes
-            *shape = shape_temp;
-            *shape_template = shape_template_temp;
-            *x += offset.0;
-            *y += offset.1;
-            // place piece on the grid
-            spawn(grid, shape);
+        }
+        if is_found {
+            *x_main = x;
+            *y_main = y;
             break;
-        };
+        }
     }
+    if !is_found {
+        return;
+    }
+    for t in &mut *shape {
+        if let Some(tile) = t {
+            grid[tile.x as usize][tile.y as usize] = 0;
+        }
+    }
+    *shape_template = shape_template_temp;
+    *shape = shape_temp.unwrap();
+    spawn(grid, shape);
 }
 pub fn vec_to_image<T>(vector: &mut Vec<T>) -> Vec<Vec<T>>
 where

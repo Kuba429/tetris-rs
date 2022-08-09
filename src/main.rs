@@ -36,6 +36,13 @@ async fn main() {
     loop {
         clear_background(WHITE);
         draw_grid(&grid);
+        handle_input(
+            (&mut x, &mut y),
+            &mut grid,
+            &mut shape,
+            &mut shape_template,
+            &get_random_shape,
+        );
         // move piece down
         if get_time() - last_update > MOVE_DOWN_DELAY {
             move_piece_down(
@@ -47,13 +54,6 @@ async fn main() {
             );
             last_update = get_time();
         }
-        handle_input(
-            (&mut x, &mut y),
-            &mut grid,
-            &mut shape,
-            &mut shape_template,
-            &get_random_shape,
-        );
         next_frame().await;
     }
 }
