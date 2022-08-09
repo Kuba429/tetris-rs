@@ -199,7 +199,7 @@ pub fn check_collision(
 // TODO check_collision function doesn't work with this function for some reason; fix it and
 // refactor it to use check_collision and make it less messy
 pub fn rotate(
-    (x_main, y_main): (&mut i8, &mut i8),
+    (x, y): (&mut i8, &mut i8),
     grid: &mut [[u8; 20]; 10],
     shape: &mut Vec<Option<Tile>>,
     shape_template: &mut Vec<u8>,
@@ -219,54 +219,47 @@ pub fn rotate(
     let mut image = vec_to_image(shape_template);
     rotate_image(&mut image);
     let shape_template_temp: Vec<u8> = image.into_iter().flatten().collect();
-    let mut shape_temp: Option<Vec<Option<Tile>>> = None;
-    let mut is_found = false;
+    let mut shape_temp: Vec<Option<Tile>>;
     for m in offsets {
-        if is_found {
-            return;
-        }
-        is_found = true;
-        let x = *x_main + m.0;
-        let y = *y_main + m.1;
-        shape_temp = Some(get_shape(x, y, &shape_template_temp));
-        for t in shape_temp.as_ref().unwrap() {
+        shape_temp = get_shape(*x + m.0, *y + m.1, &shape_template_temp);
+        let mut is_ok = true;
+        for t in &shape_temp {
             if let Some(tile) = t {
                 if tile.x < 0
                     || tile.y < 0
                     || tile.x >= grid.len() as i8
                     || tile.y >= grid[0].len() as i8
                     || (grid[tile.x as usize][tile.y as usize] != 0
-                        && !shape.iter().any(|own| {
+                        && !shape.iter().any(|t2| {
                             let mut is_own = false;
-                            if let Some(xx) = own {
-                                if xx.x == tile.x && xx.y == tile.y {
+                            if let Some(tile2) = t2 {
+                                if tile2.x == tile.x && tile2.y == tile.y {
                                     is_own = true;
                                 }
                             }
                             return is_own;
                         }))
                 {
-                    is_found = false
+                    is_ok = false;
+                    break; // this offset is wrong, skip all other tiles of this piece and try
+                           // another tuple
                 }
             }
         }
-        if is_found {
-            *x_main = x;
-            *y_main = y;
-            break;
+        if is_ok {
+            for t in &mut *shape {
+                if let Some(tile) = t {
+                    grid[tile.x as usize][tile.y as usize] = 0;
+                }
+            }
+            *shape_template = shape_template_temp;
+            *shape = shape_temp;
+            *x += m.0;
+            *y += m.1;
+            spawn(grid, shape);
+            return;
         }
     }
-    if !is_found {
-        return;
-    }
-    for t in &mut *shape {
-        if let Some(tile) = t {
-            grid[tile.x as usize][tile.y as usize] = 0;
-        }
-    }
-    *shape_template = shape_template_temp;
-    *shape = shape_temp.unwrap();
-    spawn(grid, shape);
 }
 pub fn vec_to_image<T>(vector: &mut Vec<T>) -> Vec<Vec<T>>
 where
