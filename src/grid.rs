@@ -30,3 +30,24 @@ pub fn draw_grid_setup(grid: &[[u8; 20]; 10]) -> impl Fn(&[[u8; 20]; 10]) {
         }
     };
 }
+pub fn remove_clean_rows(grid: &mut [[u8; 20]; 10]) {
+    // loop through rows and remove them. If row isn't clean, skip this iteration(which will result
+    // in row not being deleted)
+    'y_loop: for y in 0..grid[0].len() {
+        for x in 0..grid.len() {
+            // values over 100 are shadows
+            if grid[x][y] == 0 || grid[x][y] > 100 {
+                continue 'y_loop;
+            }
+        }
+        for y in (0..y + 1).rev() {
+            for x in 0..grid.len() {
+                if y <= 0 {
+                    grid[x][y] = 0;
+                } else {
+                    grid[x][y] = grid[x][y - 1];
+                }
+            }
+        }
+    }
+}

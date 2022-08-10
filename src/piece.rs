@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::{input::Direction, tile::Tile};
+use crate::{grid::remove_clean_rows, input::Direction, tile::Tile};
 use rand::prelude::*;
 #[rustfmt::skip] // easier to see the shapes
 pub fn get_random_shape_template_getter() -> impl Fn() -> Vec<u8> {
@@ -152,6 +152,7 @@ pub fn move_piece_down(
         *shape_template = get_random_shape_template();
         (*x, *y) = (4, 1);
         *shape = get_shape(*x, *y, shape_template);
+        remove_clean_rows(grid);
     }
 }
 // TODO; rotation collision check not working how it's supposed to; pieces can go into other tiles
