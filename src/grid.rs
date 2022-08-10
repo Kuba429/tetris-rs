@@ -1,36 +1,33 @@
 use macroquad::prelude::*;
 
-use crate::BASE;
-
-pub fn draw_grid_setup(grid: &[[u8; 20]; 10]) -> impl Fn(&[[u8; 20]; 10]) {
-    let tile_width: f32 = BASE as f32 / grid.len() as f32;
-    let offset: f32 = BASE as f32 / 3.0;
-    return move |grid: &[[u8; 20]; 10]| {
-        draw_rectangle(
-            offset,
-            0.0,
-            BASE.into(),
-            screen_height(),
-            Color::new(0.0, 0.0, 0.0, 0.1),
-        ); // mesh
-        for x in 0..grid.len() {
-            for y in 0..grid[0].len() {
-                let mut color = WHITE;
-                if grid[x][y] != 0 {
-                    color = BLUE;
-                };
-                draw_rectangle(
-                    x as f32 * tile_width + offset + 0.5,
-                    y as f32 * tile_width + 0.5,
-                    tile_width - 1.0,
-                    tile_width - 1.0,
-                    color,
-                )
-            }
+use crate::{GRID_H, GRID_W, TILE_W};
+pub fn draw_grid(grid: &[[u8; GRID_H]; GRID_W]) {
+    draw_rectangle(
+        0.0,
+        0.0,
+        screen_width(),
+        screen_height(),
+        Color::new(0.0, 0.0, 0.0, 0.1),
+    ); // mesh
+    for x in 0..grid.len() {
+        for y in 0..grid[0].len() {
+            let mut color = WHITE;
+            if grid[x][y] != 0 {
+                color = BLUE;
+                draw_rectangle(x as f32 * TILE_W, y as f32 * TILE_W, TILE_W, TILE_W, color);
+                continue;
+            };
+            draw_rectangle(
+                x as f32 * TILE_W + 1.0,
+                y as f32 * TILE_W + 1.0,
+                TILE_W - 1.0,
+                TILE_W - 1.0,
+                color,
+            )
         }
-    };
+    }
 }
-pub fn remove_clean_rows(grid: &mut [[u8; 20]; 10]) {
+pub fn remove_clean_rows(grid: &mut [[u8; GRID_H]; GRID_W]) {
     // loop through rows and remove them. If row isn't clean, skip this iteration(which will result
     // in row not being deleted)
     'y_loop: for y in 0..grid[0].len() {

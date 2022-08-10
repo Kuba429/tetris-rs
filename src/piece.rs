@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::{grid::remove_clean_rows, input::Direction, tile::Tile};
+use crate::{grid::remove_clean_rows, input::Direction, tile::Tile, GRID_H, GRID_W};
 use rand::prelude::*;
 #[rustfmt::skip] // easier to see the shapes
 pub fn get_random_shape_template_getter() -> impl Fn() -> Vec<u8> {
@@ -100,7 +100,7 @@ pub fn get_shape(x: i8, y: i8, template: &Vec<u8>) -> Vec<Option<Tile>> {
         _ => panic!("Unhandled shape template"),
     };
 }
-pub fn spawn(grid: &mut [[u8; 20]; 10], shape: &Vec<Option<Tile>>) {
+pub fn spawn(grid: &mut [[u8; GRID_H]; GRID_W], shape: &Vec<Option<Tile>>) {
     shape.iter().for_each(|tile| {
         if let Some(t) = tile {
             grid[t.x as usize][t.y as usize] = t.val;
@@ -109,7 +109,7 @@ pub fn spawn(grid: &mut [[u8; 20]; 10], shape: &Vec<Option<Tile>>) {
 }
 pub fn move_piece(
     (x, y): (&mut i8, &mut i8),
-    grid: &mut [[u8; 20]; 10],
+    grid: &mut [[u8; GRID_H]; GRID_W],
     shape: &mut Vec<Option<Tile>>,
     direction: Direction,
 ) -> bool {
@@ -142,7 +142,7 @@ pub fn move_piece(
 pub fn move_piece_down(
     // this is just a proxy function, might delete it later idk
     (x, y): (&mut i8, &mut i8),
-    grid: &mut [[u8; 20]; 10],
+    grid: &mut [[u8; GRID_H]; GRID_W],
     shape_template: &mut Vec<u8>,
     shape: &mut Vec<Option<Tile>>,
     get_random_shape_template: &dyn Fn() -> Vec<u8>,
@@ -158,7 +158,7 @@ pub fn move_piece_down(
 // TODO; rotation collision check not working how it's supposed to; pieces can go into other tiles
 // and delete them from the grid
 pub fn check_collision(
-    grid: &mut [[u8; 20]; 10],
+    grid: &mut [[u8; GRID_H]; GRID_W],
     shape: &Vec<Option<Tile>>,
     (diff_x, diff_y): (i8, i8),
 ) -> bool {
@@ -201,7 +201,7 @@ pub fn check_collision(
 // refactor it to use check_collision and make it less messy
 pub fn rotate(
     (x, y): (&mut i8, &mut i8),
-    grid: &mut [[u8; 20]; 10],
+    grid: &mut [[u8; GRID_H]; GRID_W],
     shape: &mut Vec<Option<Tile>>,
     shape_template: &mut Vec<u8>,
 ) {

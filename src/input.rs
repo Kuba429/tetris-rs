@@ -9,11 +9,12 @@ use crate::{
     piece::move_piece,
     piece::{move_piece_down, rotate},
     tile::Tile,
+    GRID_H, GRID_W,
 };
 
 pub fn handle_input_setup() -> impl Fn(
     (&mut i8, &mut i8),
-    &mut [[u8; 20]; 10],
+    &mut [[u8; GRID_H]; GRID_W],
     &mut Vec<Option<Tile>>,
     &mut Vec<u8>,
     &dyn Fn() -> Vec<u8>,
@@ -27,7 +28,7 @@ pub fn handle_input_setup() -> impl Fn(
             (KeyCode::Space, 0),
         ])));
     return move |(x, y): (&mut i8, &mut i8),
-                 grid: &mut [[u8; 20]; 10],
+                 grid: &mut [[u8; GRID_H]; GRID_W],
                  shape: &mut Vec<Option<Tile>>,
                  shape_template: &mut Vec<u8>,
                  get_random_shape_template: &dyn Fn() -> Vec<u8>| {
