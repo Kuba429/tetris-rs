@@ -1,6 +1,9 @@
+use std::collections::HashMap;
+
 use macroquad::prelude::*;
 
 use crate::{GRID_H, GRID_W, TILE_W};
+
 pub fn draw_grid(grid: &[[u8; GRID_H]; GRID_W]) {
     draw_rectangle(
         0.0,
@@ -11,10 +14,14 @@ pub fn draw_grid(grid: &[[u8; GRID_H]; GRID_W]) {
     ); // mesh
     for x in 0..grid.len() {
         for y in 0..grid[0].len() {
-            let mut color = WHITE;
             if grid[x][y] != 0 {
-                color = BLUE;
-                draw_rectangle(x as f32 * TILE_W, y as f32 * TILE_W, TILE_W, TILE_W, color);
+                draw_rectangle(
+                    x as f32 * TILE_W,
+                    y as f32 * TILE_W,
+                    TILE_W,
+                    TILE_W,
+                    get_color(grid[x][y]),
+                );
                 continue;
             };
             draw_rectangle(
@@ -22,10 +29,43 @@ pub fn draw_grid(grid: &[[u8; GRID_H]; GRID_W]) {
                 y as f32 * TILE_W + 1.0,
                 TILE_W - 1.0,
                 TILE_W - 1.0,
-                color,
+                WHITE,
             )
         }
     }
+}
+fn get_color(val: u8) -> Color {
+    // pattern matching doesn't seem to be working with u8 idk
+    if val == 1 {
+        println!("{}", val);
+        return Color::from_rgba(253, 243, 142, 255);
+    }
+    if val == 2 {
+        println!("{}", val);
+        return Color::from_rgba(0, 221, 255, 255); //light blue
+    }
+    if val == 3 {
+        println!("{}", val);
+        return Color::from_rgba(148, 221, 142, 255); // green
+    }
+    if val == 4 {
+        println!("{}", val);
+        return Color::from_rgba(237, 77, 69, 255); //red
+    }
+    if val == 5 {
+        println!("{}", val);
+        return Color::from_rgba(0, 88, 227, 255); //darker blue
+    }
+    if val == 6 {
+        println!("{}", val);
+        return Color::from_rgba(234, 114, 24, 255); //orange
+    }
+    if val == 7 {
+        println!("{}", val);
+        return Color::from_rgba(237, 78, 224, 255); //purple
+    }
+    println!("{}", val);
+    return BLUE;
 }
 pub fn remove_clean_rows(grid: &mut [[u8; GRID_H]; GRID_W]) {
     // loop through rows and remove them. If row isn't clean, skip this iteration(which will result
