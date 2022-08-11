@@ -37,34 +37,26 @@ pub fn draw_grid(grid: &[[u8; GRID_H]; GRID_W]) {
 fn get_color(val: u8) -> Color {
     // pattern matching doesn't seem to be working with u8 idk
     if val == 1 {
-        println!("{}", val);
         return Color::from_rgba(253, 243, 142, 255);
     }
     if val == 2 {
-        println!("{}", val);
         return Color::from_rgba(0, 221, 255, 255); //light blue
     }
     if val == 3 {
-        println!("{}", val);
         return Color::from_rgba(148, 221, 142, 255); // green
     }
     if val == 4 {
-        println!("{}", val);
         return Color::from_rgba(237, 77, 69, 255); //red
     }
     if val == 5 {
-        println!("{}", val);
         return Color::from_rgba(0, 88, 227, 255); //darker blue
     }
     if val == 6 {
-        println!("{}", val);
         return Color::from_rgba(234, 114, 24, 255); //orange
     }
     if val == 7 {
-        println!("{}", val);
         return Color::from_rgba(237, 78, 224, 255); //purple
     }
-    println!("{}", val);
     return BLUE;
 }
 pub fn remove_clean_rows(grid: &mut [[u8; GRID_H]; GRID_W]) {

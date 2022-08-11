@@ -1,12 +1,14 @@
 mod grid;
 mod input;
 mod piece;
+mod shadow;
 mod tile;
 
 use grid::draw_grid;
 use input::handle_input_setup;
 use macroquad::prelude::*;
 use piece::{get_random_shape_template_getter, get_shape, move_piece_down, spawn};
+use shadow::update_shadow;
 use tile::Tile;
 
 pub const GRID_W: usize = 10;
@@ -32,6 +34,8 @@ async fn main() {
     let (mut x, mut y): (i8, i8) = (4, 1);
     let mut shape_template: Vec<u8> = get_random_shape();
     let mut shape: Vec<Option<Tile>> = get_shape(x, y, &shape_template);
+    let mut shadow: Vec<Option<Tile>> = vec![None];
+    update_shadow((&x, &y), &mut grid, &shape, &shape_template, &mut shadow);
     spawn(&mut grid, &shape);
     let handle_input = handle_input_setup();
     let mut last_update = get_time();
@@ -43,6 +47,7 @@ async fn main() {
             &mut grid,
             &mut shape,
             &mut shape_template,
+            &mut shadow,
             &get_random_shape,
         );
         // move piece down

@@ -8,6 +8,7 @@ use macroquad::prelude::{is_key_down, is_key_released, KeyCode};
 use crate::{
     piece::move_piece,
     piece::{move_piece_down, rotate},
+    shadow::update_shadow,
     tile::Tile,
     GRID_H, GRID_W,
 };
@@ -17,6 +18,7 @@ pub fn handle_input_setup() -> impl Fn(
     &mut [[u8; GRID_H]; GRID_W],
     &mut Vec<Option<Tile>>,
     &mut Vec<u8>,
+    &mut Vec<Option<Tile>>,
     &dyn Fn() -> Vec<u8>,
 ) {
     let pressed_keys_mutex: Arc<Mutex<HashMap<KeyCode, u32>>> =
@@ -31,6 +33,7 @@ pub fn handle_input_setup() -> impl Fn(
                  grid: &mut [[u8; GRID_H]; GRID_W],
                  shape: &mut Vec<Option<Tile>>,
                  shape_template: &mut Vec<u8>,
+                 shadow: &mut Vec<Option<Tile>>,
                  get_random_shape_template: &dyn Fn() -> Vec<u8>| {
         let mut pressed_keys = pressed_keys_mutex.lock().unwrap();
         pressed_keys.iter_mut().for_each(|(key, count)| {
@@ -78,6 +81,7 @@ pub fn handle_input_setup() -> impl Fn(
                 *count = 0
             }
         });
+        update_shadow((x, y), grid, shape, shape_template, shadow);
     };
 }
 pub enum Direction {
