@@ -7,7 +7,7 @@ use macroquad::prelude::{is_key_down, is_key_released, KeyCode};
 
 use crate::{
     piece::move_piece,
-    piece::{move_piece_down, rotate},
+    piece::{drop, move_piece_down, rotate},
     shadow::update_shadow,
     tile::Tile,
     GRID_H, GRID_W,
@@ -68,7 +68,15 @@ pub fn handle_input_setup() -> impl Fn(
                         }
                     }
                     KeyCode::Space => {
-                        todo!("drop");
+                        if *count == 0 {
+                            drop(
+                                (x, y),
+                                grid,
+                                shape_template,
+                                shape,
+                                get_random_shape_template,
+                            )
+                        }
                     }
                     _ => {
                         panic!("Unhandled key")

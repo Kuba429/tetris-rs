@@ -146,17 +146,45 @@ pub fn move_piece_down(
     shape_template: &mut Vec<u8>,
     shape: &mut Vec<Option<Tile>>,
     get_random_shape_template: &dyn Fn() -> Vec<u8>,
-) {
+) -> bool {
+    // return true if piece was reset after hitting something below
     let get_new_piece = move_piece((x, y), grid, shape, Direction::BOTTOM);
     if !get_new_piece {
         *shape_template = get_random_shape_template();
         (*x, *y) = (4, 1);
         *shape = get_shape(*x, *y, shape_template);
         remove_clean_rows(grid);
+        return false;
     }
+    return true;
 }
-// TODO; rotation collision check not working how it's supposed to; pieces can go into other tiles
-// and delete them from the grid
+pub fn drop(
+    (x, y): (&mut i8, &mut i8),
+    grid: &mut [[u8; GRID_H]; GRID_W],
+    shape_template: &mut Vec<u8>,
+    shape: &mut Vec<Option<Tile>>,
+    get_random_shape_template: &dyn Fn() -> Vec<u8>,
+) {
+    shape.iter_mut().for_each(|tile| {
+        if let Some(t) = tile {
+            grid[t.x as usize][t.y as usize] = 0;
+        }
+    });
+    while !check_collision(grid, shape, (0, 1)) {
+        shape.iter_mut().for_each(|tile| {
+            if let Some(t) = tile {
+                t.y += 1;
+            }
+        });
+    }
+    spawn(grid, shape);
+    // reset
+    *shape_template = get_random_shape_template();
+    (*x, *y) = (4, 1);
+    *shape = get_shape(*x, *y, shape_template);
+    remove_clean_rows(grid);
+}
+
 pub fn check_collision(
     grid: &mut [[u8; GRID_H]; GRID_W],
     shape: &Vec<Option<Tile>>,
