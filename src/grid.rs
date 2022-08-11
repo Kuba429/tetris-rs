@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use macroquad::prelude::*;
 
 use crate::{GRID_H, GRID_W, TILE_W};
@@ -34,30 +32,35 @@ pub fn draw_grid(grid: &[[u8; GRID_H]; GRID_W]) {
         }
     }
 }
-fn get_color(val: u8) -> Color {
+fn get_color(mut val: u8) -> Color {
     // pattern matching doesn't seem to be working with u8 idk
+    let mut a: u8 = 255;
+    if val > 100 {
+        a = 50;
+        val -= 100
+    }
     if val == 1 {
-        return Color::from_rgba(253, 243, 142, 255);
+        return Color::from_rgba(253, 243, 142, a);
     }
     if val == 2 {
-        return Color::from_rgba(0, 221, 255, 255); //light blue
+        return Color::from_rgba(0, 221, 255, a); //light blue
     }
     if val == 3 {
-        return Color::from_rgba(148, 221, 142, 255); // green
+        return Color::from_rgba(148, 221, 142, a); // green
     }
     if val == 4 {
-        return Color::from_rgba(237, 77, 69, 255); //red
+        return Color::from_rgba(237, 77, 69, a); //red
     }
     if val == 5 {
-        return Color::from_rgba(0, 88, 227, 255); //darker blue
+        return Color::from_rgba(0, 88, 227, a); //darker blue
     }
     if val == 6 {
-        return Color::from_rgba(234, 114, 24, 255); //orange
+        return Color::from_rgba(234, 114, 24, a); //orange
     }
     if val == 7 {
-        return Color::from_rgba(237, 78, 224, 255); //purple
+        return Color::from_rgba(237, 78, 224, a); //purple
     }
-    return BLUE;
+    return Color::from_rgba(255, 255, 255, a);
 }
 pub fn remove_clean_rows(grid: &mut [[u8; GRID_H]; GRID_W]) {
     // loop through rows and remove them. If row isn't clean, skip this iteration(which will result
