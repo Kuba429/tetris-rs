@@ -5,10 +5,6 @@ pub struct Tile {
 }
 impl Tile {
     pub fn new(x: i8, y: i8, val: u8) -> Self {
-        Self {
-            x: x,
-            y: y,
-            val: val,
-        }
+        Self { x, y, val }
     }
 }

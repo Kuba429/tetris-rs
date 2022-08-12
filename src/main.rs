@@ -3,6 +3,7 @@ mod input;
 mod piece;
 mod shadow;
 mod tile;
+mod utils;
 
 use grid::draw_grid;
 use input::handle_input_setup;

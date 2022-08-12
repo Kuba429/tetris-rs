@@ -1,8 +1,4 @@
-use crate::{
-    piece::{get_shape, spawn},
-    tile::Tile,
-    GRID_H, GRID_W,
-};
+use crate::{piece::get_shape, tile::Tile, GRID_H, GRID_W};
 
 pub fn update_shadow(
     (x, y): (&i8, &i8),
